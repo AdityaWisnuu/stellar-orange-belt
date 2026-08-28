@@ -28,7 +28,13 @@ fn setup() -> Setup<'static> {
 
     let contract_id = env.register(Kirim, (&asset.address(),));
     let kirim = KirimClient::new(&env, &contract_id);
-    Setup { env, kirim, token, sender, recipient }
+    Setup {
+        env,
+        kirim,
+        token,
+        sender,
+        recipient,
+    }
 }
 
 fn send(s: &Setup, amount: i128, ttl: u32) -> u64 {
@@ -98,11 +104,23 @@ fn double_claim_is_rejected() {
 fn invalid_inputs_are_rejected() {
     let s = setup();
     assert_eq!(
-        s.kirim.try_send(&s.sender, &s.recipient, &0, &String::from_str(&s.env, "x"), &100),
+        s.kirim.try_send(
+            &s.sender,
+            &s.recipient,
+            &0,
+            &String::from_str(&s.env, "x"),
+            &100
+        ),
         Err(Ok(Error::InvalidAmount))
     );
     assert_eq!(
-        s.kirim.try_send(&s.sender, &s.recipient, &10, &String::from_str(&s.env, "x"), &1),
+        s.kirim.try_send(
+            &s.sender,
+            &s.recipient,
+            &10,
+            &String::from_str(&s.env, "x"),
+            &1
+        ),
         Err(Ok(Error::InvalidTtl))
     );
     assert_eq!(s.kirim.try_claim(&99), Err(Ok(Error::NotFound)));

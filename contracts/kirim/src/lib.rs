@@ -101,8 +101,10 @@ impl Kirim {
             .extend_ttl(&key, STORAGE_TTL_LEDGERS, STORAGE_TTL_LEDGERS);
         env.storage().instance().set(&DataKey::Count, &(id + 1));
 
-        env.events()
-            .publish((symbol_short!("kirim"), symbol_short!("sent"), id), (sender, recipient, amount));
+        env.events().publish(
+            (symbol_short!("kirim"), symbol_short!("sent"), id),
+            (sender, recipient, amount),
+        );
         Ok(id)
     }
 
@@ -131,8 +133,10 @@ impl Kirim {
         t.status = Status::Claimed;
         env.storage().persistent().set(&key, &t);
 
-        env.events()
-            .publish((symbol_short!("kirim"), symbol_short!("claimed"), id), (t.recipient, t.amount));
+        env.events().publish(
+            (symbol_short!("kirim"), symbol_short!("claimed"), id),
+            (t.recipient, t.amount),
+        );
         Ok(())
     }
 
@@ -161,8 +165,10 @@ impl Kirim {
         t.status = Status::Refunded;
         env.storage().persistent().set(&key, &t);
 
-        env.events()
-            .publish((symbol_short!("kirim"), symbol_short!("refunded"), id), (t.sender, t.amount));
+        env.events().publish(
+            (symbol_short!("kirim"), symbol_short!("refunded"), id),
+            (t.sender, t.amount),
+        );
         Ok(())
     }
 
