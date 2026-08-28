@@ -13,9 +13,9 @@ Orange Belt submission for **Stellar Journey to Mastery: Monthly Builder Challen
 | Requirement | Where |
 |---|---|
 | Complete mini dApp | Full product loop: send → shareable claim link (`?id=N`) → claim / refund, with live activity feed and wallet-aware action guards |
-| Advanced smart contracts | `contracts/kirim`: escrow holding funds in the contract, per-transfer **persistent storage** with TTL extension, **time-lock** logic (claim before expiry / refund after), status lifecycle (`Pending → Claimed / Refunded`), dual-sided auth (recipient claims, sender refunds), custom errors, structured events |
-| Testing | 6 unit tests: happy path, refund after expiry, claim-after-expiry rejected, premature refund rejected, double-claim rejected, input validation (`cargo test`) |
-| Deployment | Deployed to testnet with constructor args; frontend deployed on Netlify |
+| Advanced smart contracts | `contracts/kirim`: escrow holding funds in the contract, **inter-contract communication** (cross-contract calls into the native XLM Stellar Asset Contract via `token::Client` for lock/release/refund), per-transfer **persistent storage** with TTL extension, **time-lock** logic (claim before expiry / refund after), status lifecycle (`Pending → Claimed / Refunded`), dual-sided auth (recipient claims, sender refunds), custom errors, structured events |
+| Testing | **16 tests**: 6 contract tests (`cargo test` — happy path, refund after expiry, claim-after-expiry rejected, premature refund rejected, double-claim rejected, input validation) + 10 frontend unit tests (`vitest` — formatting, status mapping, error translation, expiry countdown) |
+| Deployment | Deployed to testnet with constructor args (`scripts/deploy.sh`); frontend deployed on Netlify; **CI/CD**: GitHub Actions runs contract tests + frontend tests + production build on every push |
 
 ## Deployed on testnet
 
@@ -49,6 +49,18 @@ The frontend maps each code to a human-readable message, guards actions by role 
 | `refund(id)` | sender | Returns funds after expiry, emits `(kirim, refunded, id)` |
 | `get_transfer(id) -> Transfer` | — | Reads one transfer (sender, recipient, amount, memo, expiry, status) |
 | `count() -> u64` | — | Total transfers ever created |
+
+## Proof & screenshots
+
+| | |
+|---|---|
+| CI pipeline (both jobs green) | ![CI pipeline](docs/screenshots/ci-pipeline.png) |
+| Test output — 16 passing | ![Tests passing](docs/screenshots/tests-passing.png) |
+| Mobile responsive UI (390px) | ![Mobile UI](docs/screenshots/mobile-responsive.png) |
+
+## Demo video
+
+▶️ _Demo video (1–2 minutes): link coming right after recording — see the submission form._
 
 ## Run it
 
