@@ -177,6 +177,8 @@ async function pollEvents() {
       }
     }
     if (fresh > 0) renderFeed(true);
+    // segarkan countdown & status transfer yang sedang dilihat
+    if (lookupResult) renderLookup();
     document.querySelector("#sync-dot")?.classList.add("live");
   } catch (e) {
     console.warn("event poll failed", e);
@@ -432,6 +434,11 @@ function wire() {
     };
     try {
       const dest = document.querySelector("#send-dest").value.trim();
+      if (dest === address) {
+        setStatus("That's your own address — enter the recipient's public key.", true);
+        btn.disabled = false;
+        return;
+      }
       const xlm = document.querySelector("#send-amount").value;
       const memo = document.querySelector("#send-memo").value.trim() || "—";
       const ttl = Number(document.querySelector("#send-ttl").value);
