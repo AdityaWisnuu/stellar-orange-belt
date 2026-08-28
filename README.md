@@ -24,6 +24,21 @@ Orange Belt submission for **Stellar Journey to Mastery: Monthly Builder Challen
   - `send` — [`59a8077d…`](https://stellar.expert/explorer/testnet/tx/59a8077dac164b8df17de944120f1f6794f7e529ba8240816ef8a0d5fa6e0552) locks 50 XLM, emits `(kirim, sent, 0)`
   - `claim` — [`fb66ab33…`](https://stellar.expert/explorer/testnet/tx/fb66ab33be09aa5778bcf197ce648c9163bc54621baf114dc9333ea989216e96) releases 50 XLM to the recipient, emits `(kirim, claimed, 0)`
 
+## Error handling
+
+Six contract error types are enforced on-chain and surfaced as readable messages in the UI:
+
+| Code | Error | Trigger |
+|---|---|---|
+| `#1` | `InvalidAmount` | amount <= 0 |
+| `#2` | `InvalidTtl` | claim window outside 1 minute - 30 days |
+| `#3` | `NotFound` | unknown transfer id |
+| `#4` | `NotPending` | transfer already claimed or refunded |
+| `#5` | `Expired` | claiming after the window closed |
+| `#6` | `NotExpiredYet` | refunding before the window closed |
+
+The frontend maps each code to a human-readable message, guards actions by role (only the recipient sees Claim, only the sender sees Refund), and shows every transaction phase: building -> simulating -> signing -> submitting -> confirmed.
+
 ## Run it
 
 ```bash
