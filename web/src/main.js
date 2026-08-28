@@ -1,4 +1,5 @@
 import "./style.css";
+import { fmtXlm, short, statusOf, friendlyError, expiryText } from "./lib.js";
 import {
   rpc,
   TransactionBuilder,
@@ -24,7 +25,6 @@ const CONTRACT_ID = "CC7WCFBM2CRUW36KTJZB67SJTSX3XHXCO7J2IJDILETKP4OFQHBT6XIZ";
 const READ_SOURCE = "GAJG2CTQGG5WAOQNEEYJNRMXFZ3BHLAGACFCTOGXQQ44UZDUCBX4WJHV";
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const EXPLORER = "https://stellar.expert/explorer/testnet";
-const LEDGER_SECONDS = 5;
 const POLL_MS = 6000;
 const TTL_OPTIONS = [
   { label: "1 hour", ledgers: 720 },
@@ -32,7 +32,6 @@ const TTL_OPTIONS = [
   { label: "3 days", ledgers: 51840 },
   { label: "7 days", ledgers: 120960 },
 ];
-const STATUS = ["Pending", "Claimed", "Refunded"];
 
 const server = new rpc.Server(RPC_URL);
 const contract = new Contract(CONTRACT_ID);
@@ -57,9 +56,6 @@ let lookupId = new URLSearchParams(location.search).get("id");
 let lookupResult = null;
 const displayed = { count: 0 };
 
-const fmt = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
-const fmtXlm = (stroops) => fmt.format(Number(stroops) / 1e7);
-const short = (a) => `${a.slice(0, 4)}…${a.slice(-4)}`;
 
 // ---------- chain helpers ----------
 async function simulate(op) {
@@ -109,38 +105,6 @@ async function invoke(op, statusFn) {
   }
   if (result.status !== "SUCCESS") throw new Error(`tx ${result.status}`);
   return { hash: sent.hash, retval: result.returnValue ? scValToNative(result.returnValue) : null };
-}
-
-function statusOf(t) {
-  return typeof t.status === "number" ? STATUS[t.status] ?? String(t.status) : String(t.status);
-}
-
-// Terjemahkan kode error kontrak jadi pesan yang bisa dimengerti manusia.
-const CONTRACT_ERRORS = {
-  1: "Amount must be greater than zero.",
-  2: "Claim window must be between 1 minute and 30 days.",
-  3: "That transfer doesn't exist.",
-  4: "This transfer was already claimed or refunded.",
-  5: "This transfer has expired — only the sender can refund it now.",
-  6: "Not expired yet — the recipient can still claim it.",
-};
-
-function friendlyError(err) {
-  const m = String(err?.message ?? err).match(/Error\(Contract, #(\d+)\)/);
-  if (m && CONTRACT_ERRORS[m[1]]) return CONTRACT_ERRORS[m[1]];
-  if (/insufficient|underfunded|balance/i.test(String(err?.message)))
-    return "Not enough XLM in the wallet for this transfer.";
-  return err.message;
-}
-
-function expiryText(t) {
-  if (!latestLedger) return "";
-  const diff = Number(t.expiry_ledger) - latestLedger;
-  if (diff <= 0) return "expired";
-  const secs = diff * LEDGER_SECONDS;
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  return h > 48 ? `≈${Math.round(h / 24)} days left` : h > 0 ? `≈${h}h ${m}m left` : `≈${m}m left`;
 }
 
 // ---------- events feed ----------
@@ -322,7 +286,7 @@ function renderLookup() {
   const canRefund = st === "Pending" && expired && isSender;
   el.innerHTML = `
     <p class="addr" style="display:block">
-      <strong>#${id}</strong> · ${fmtXlm(t.amount)} XLM · <b>${st}</b> ${st === "Pending" ? `· ${expiryText(t)}` : ""}<br />
+      <strong>#${id}</strong> · ${fmtXlm(t.amount)} XLM · <b>${st}</b> ${st === "Pending" ? `· ${expiryText(t, latestLedger)}` : ""}<br />
       <span class="small muted">from</span> ${short(t.sender)} <span class="small muted">to</span> ${short(t.recipient)}<br />
       ${t.memo ? `<q>${t.memo}</q>` : ""}
     </p>
