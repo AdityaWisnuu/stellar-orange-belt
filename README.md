@@ -60,7 +60,7 @@ The frontend maps each code to a human-readable message, guards actions by role 
 
 ## Demo video
 
-▶️ _Demo video (1–2 minutes): link coming right after recording — see the submission form._
+▶️ **[Watch the 1-minute demo](https://youtu.be/fzgvDW8XMyk)** — every transfer in the video was sent, claimed, and refunded live on testnet during recording.
 
 ## Run it
 
