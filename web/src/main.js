@@ -115,6 +115,24 @@ function statusOf(t) {
   return typeof t.status === "number" ? STATUS[t.status] ?? String(t.status) : String(t.status);
 }
 
+// Terjemahkan kode error kontrak jadi pesan yang bisa dimengerti manusia.
+const CONTRACT_ERRORS = {
+  1: "Amount must be greater than zero.",
+  2: "Claim window must be between 1 minute and 30 days.",
+  3: "That transfer doesn't exist.",
+  4: "This transfer was already claimed or refunded.",
+  5: "This transfer has expired — only the sender can refund it now.",
+  6: "Not expired yet — the recipient can still claim it.",
+};
+
+function friendlyError(err) {
+  const m = String(err?.message ?? err).match(/Error\(Contract, #(\d+)\)/);
+  if (m && CONTRACT_ERRORS[m[1]]) return CONTRACT_ERRORS[m[1]];
+  if (/insufficient|underfunded|balance/i.test(String(err?.message)))
+    return "Not enough XLM in the wallet for this transfer.";
+  return err.message;
+}
+
 function expiryText(t) {
   if (!latestLedger) return "";
   const diff = Number(t.expiry_ledger) - latestLedger;
@@ -324,7 +342,7 @@ function renderLookup() {
       await loadTransfer(id);
       pollEvents();
     } catch (err) {
-      setStatus(`Failed: ${err.message}`, true);
+      setStatus(`Failed: ${friendlyError(err)}`, true);
       e.target.disabled = false;
     }
   });
@@ -336,7 +354,7 @@ function renderLookup() {
       await loadTransfer(id);
       pollEvents();
     } catch (err) {
-      setStatus(`Failed: ${err.message}`, true);
+      setStatus(`Failed: ${friendlyError(err)}`, true);
       e.target.disabled = false;
     }
   });
@@ -440,7 +458,7 @@ function wire() {
       refreshStats();
       pollEvents();
     } catch (err) {
-      setStatus(`Failed: ${err.message}`, true);
+      setStatus(`Failed: ${friendlyError(err)}`, true);
     } finally {
       btn.disabled = false;
     }
