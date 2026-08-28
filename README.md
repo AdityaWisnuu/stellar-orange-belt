@@ -23,6 +23,7 @@ Orange Belt submission for **Stellar Journey to Mastery: Monthly Builder Challen
 - **Proof of the full escrow loop on-chain:**
   - `send` — [`59a8077d…`](https://stellar.expert/explorer/testnet/tx/59a8077dac164b8df17de944120f1f6794f7e529ba8240816ef8a0d5fa6e0552) locks 50 XLM, emits `(kirim, sent, 0)`
   - `claim` — [`fb66ab33…`](https://stellar.expert/explorer/testnet/tx/fb66ab33be09aa5778bcf197ce648c9163bc54621baf114dc9333ea989216e96) releases 50 XLM to the recipient, emits `(kirim, claimed, 0)`
+  - `refund` — [`7df1ddb4…`](https://stellar.expert/explorer/testnet/tx/7df1ddb4d78646a0f9b0a3f61ffa5bbed3fb207613caab815d4884f2bca025c8) returns an expired transfer (#1, 3 XLM) to the sender, emits `(kirim, refunded, 1)` — and rejects premature refunds with `NotExpiredYet`
 
 ## Error handling
 
@@ -38,6 +39,16 @@ Six contract error types are enforced on-chain and surfaced as readable messages
 | `#6` | `NotExpiredYet` | refunding before the window closed |
 
 The frontend maps each code to a human-readable message, guards actions by role (only the recipient sees Claim, only the sender sees Refund), and shows every transaction phase: building -> simulating -> signing -> submitting -> confirmed.
+
+## Contract API
+
+| Function | Auth | Description |
+|---|---|---|
+| `send(sender, recipient, amount, memo, ttl_ledgers) -> u64` | sender | Locks funds, stores the transfer, emits `(kirim, sent, id)` |
+| `claim(id)` | recipient | Releases funds before expiry, emits `(kirim, claimed, id)` |
+| `refund(id)` | sender | Returns funds after expiry, emits `(kirim, refunded, id)` |
+| `get_transfer(id) -> Transfer` | — | Reads one transfer (sender, recipient, amount, memo, expiry, status) |
+| `count() -> u64` | — | Total transfers ever created |
 
 ## Run it
 
