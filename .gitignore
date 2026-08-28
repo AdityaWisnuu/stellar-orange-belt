@@ -1,0 +1,11 @@
+# Rust's output directory
+target
+
+# Local settings
+.soroban
+.stellar
+
+# Node
+node_modules
+dist
+.DS_Store
